@@ -9,11 +9,9 @@
     <style>
         html, body {
             margin: 0;
-            padding: 0;
             width: 100%;
             height: 100%;
             background: black;
-            overflow: hidden;
         }
 
         cast-media-player {
@@ -27,63 +25,34 @@
     <cast-media-player></cast-media-player>
 
     <script>
-        const context = cast.framework.CastReceiverContext.getInstance();
-        const playerManager = context.getPlayerManager();
+        try {
+            const context = cast.framework.CastReceiverContext.getInstance();
+            const playerManager = context.getPlayerManager();
 
-        // -----------------------------
-        // LOGGING (CRITICAL DEBUGGING)
-        // -----------------------------
-        playerManager.addEventListener(
-            cast.framework.events.EventType.LOAD,
-            e => console.log("LOAD:", e)
-        );
-
-        playerManager.addEventListener(
-            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
-            e => console.log("STATE:", e)
-        );
-
-        playerManager.addEventListener(
-            cast.framework.events.EventType.ERROR,
-            e => console.error("ERROR:", e)
-        );
-
-        // -----------------------------
-        // LOAD INTERCEPTOR
-        // -----------------------------
-        playerManager.setMessageInterceptor(
-            cast.framework.messages.MessageType.LOAD,
-            request => {
-
-                if (request.media?.customData) {
-                    console.log("CustomData received:", request.media.customData);
+            // SAFE interceptor only
+            playerManager.setMessageInterceptor(
+                cast.framework.messages.MessageType.LOAD,
+                request => {
+                    console.log("LOAD:", request?.media?.customData);
+                    request.autoplay = true;
+                    return request;
                 }
+            );
 
-                // IMPORTANT: force autoplay stability
-                request.autoplay = true;
+            const options = new cast.framework.CastReceiverOptions();
 
-                return request;
-            }
-        );
+            options.maxInactivity = 3600;
 
-        // -----------------------------
-        // OPTIONS (FIXED)
-        // -----------------------------
-        const options = new cast.framework.CastReceiverOptions();
+            // IMPORTANT: ne PAS mettre disableIdleTimeout
+            // options.disableIdleTimeout = true; ❌ REMOVE
 
-        // IMPORTANT: keep alive behavior
-        options.disableIdleTimeout = false;
-        options.maxInactivity = 3600;
+            context.start(options);
 
-        // IMPORTANT: avoids premature teardown on audio-only or low UI activity
-        options.skipPlayersLoad = false;
+            console.log("Receiver started OK");
 
-        // -----------------------------
-        // START
-        // -----------------------------
-        context.start(options);
-
-        console.log("Cast Receiver started");
+        } catch (e) {
+            console.error("Receiver crash:", e);
+        }
     </script>
 </body>
 </html>
