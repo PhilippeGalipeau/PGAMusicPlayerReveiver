@@ -30,16 +30,20 @@
 
 <script>
     window.onerror = function (message, source, lineno, colno, error) {
-        console.log("🔥 JS ERROR:");
-        console.log("Message:", message);
-        console.log("Source:", source);
-        console.log("Line:", lineno, "Col:", colno);
-        console.log("Error:", error);
+        console.log("PGA - 🔥 JS ERROR:");
+        console.log("PGA - 🔥Message:", message);
+        console.log("PGA - 🔥Source:", source);
+        console.log("PGA - 🔥Line:", lineno, "Col:", colno);
+        console.log("PGA - 🔥Error:", error);
     };
+    window.addEventListener("unhandledrejection", function (event) {
+        console.log("PGA - 🔥🔥 UNHANDLED PROMISE:");
+        console.log("PGA - 🔥" , event.reason);
+    });
     try {
 
         if (!window.cast || !cast.framework) {
-            console.error("CAST SDK NOT LOADED");
+            console.error("PGA - CAST SDK NOT LOADED");
             document.body.innerHTML = "<h1 style='color:white'>Cast SDK failed to load</h1>";
             throw new Error("Cast SDK missing");
         }
