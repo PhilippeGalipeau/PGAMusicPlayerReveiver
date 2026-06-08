@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>PGA Music Player Receiver</title>
 
-    <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <!-- IMPORTANT: HTTPS explicite -->
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 
     <style>
         html, body {
@@ -16,146 +17,64 @@
             overflow: hidden;
         }
 
-        #app {
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background: black;
-        }
-
         cast-media-player {
             width: 100%;
             height: 100%;
-        }
-
-        /* Anti “black flash / UI detach” */
-        cast-media-player {
             display: block;
-            opacity: 1;
         }
     </style>
 </head>
 
 <body>
-    <div id="app">
-        <cast-media-player></cast-media-player>
-    </div>
+<cast-media-player></cast-media-player>
 
-    <script>
+<script>
+    try {
+
+        if (!window.cast || !cast.framework) {
+            console.error("CAST SDK NOT LOADED");
+            document.body.innerHTML = "<h1 style='color:white'>Cast SDK failed to load</h1>";
+            throw new Error("Cast SDK missing");
+        }
+
         const context = cast.framework.CastReceiverContext.getInstance();
         const playerManager = context.getPlayerManager();
 
-        // -----------------------------
-        // STATE TRACKING (CRITICAL FIX)
-        // -----------------------------
-        let lastKnownState = null;
+        console.log("Receiver JS loaded");
 
-        function logState(state) {
-            console.log("[STATE]", state.playerState);
-            lastKnownState = state.playerState;
-        }
-
-        // -----------------------------
-        // EVENT LISTENERS
-        // -----------------------------
         playerManager.addEventListener(
             cast.framework.events.EventType.PLAYER_STATE_CHANGED,
-            logState
+            e => console.log("[STATE]", e.playerState)
         );
 
         playerManager.addEventListener(
             cast.framework.events.EventType.ERROR,
-            e => console.error("[CAST ERROR]", e)
+            e => console.error("[ERROR]", e)
         );
 
-        playerManager.addEventListener(
-            cast.framework.events.EventType.LOAD,
-            e => console.log("[LOAD]", e?.media?.customData)
-        );
-
-        // -----------------------------
-        // LOAD INTERCEPTOR (SAFE)
-        // -----------------------------
         playerManager.setMessageInterceptor(
             cast.framework.messages.MessageType.LOAD,
             request => {
-
-                console.log("[LOAD REQUEST]", request?.media?.customData);
-
-                // force autoplay stable
+                console.log("[LOAD]", request?.media?.customData);
                 request.autoplay = true;
-
                 return request;
             }
         );
 
-        // -----------------------------
-        // UI RECOVERY SYSTEM (KEY FIX)
-        // -----------------------------
-        function restoreUI() {
-            const app = document.getElementById("app");
-
-            if (!app) return;
-
-            app.style.display = "block";
-            app.style.visibility = "visible";
-            app.style.opacity = "1";
-
-            console.log("[UI] restored");
-        }
-
-        function forceRenderRecovery() {
-            // Force DOM repaint trick (fix Google TV UI detach bug)
-            const app = document.getElementById("app");
-            if (!app) return;
-
-            app.style.display = "none";
-            setTimeout(() => {
-                app.style.display = "block";
-                restoreUI();
-            }, 50);
-        }
-
-        // -----------------------------
-        // VISIBILITY HANDLING (HOME BUTTON FIX)
-        // -----------------------------
-        document.addEventListener("visibilitychange", () => {
-            if (!document.hidden) {
-                console.log("[VISIBILITY] back foreground");
-
-                restoreUI();
-
-                // important: forces rebind of cast surface
-                setTimeout(forceRenderRecovery, 100);
-            }
-        });
-
-        // -----------------------------
-        // SYSTEM EVENT RECOVERY
-        // -----------------------------
-        context.addEventListener(
-            cast.framework.system.EventType.APPLICATION_STATUS_CHANGED,
-            () => {
-                console.log("[SYSTEM] status changed → recovery");
-                setTimeout(restoreUI, 100);
-            }
-        );
-
-        // -----------------------------
-        // START OPTIONS (SAFE CONFIG)
-        // -----------------------------
         const options = new cast.framework.CastReceiverOptions();
-
         options.maxInactivity = 3600;
-
-        // IMPORTANT: avoid unstable flags that break CAF startup
-        // (no disableIdleTimeout, no experimental flags)
 
         context.start(options);
 
-        console.log("[CAST] Receiver started OK");
-    </script>
+        console.log("CAST RECEIVER STARTED OK");
+
+    } catch (e) {
+        console.error("FATAL RECEIVER ERROR:", e);
+
+        // Empêche boucle infinie silencieuse
+        document.body.innerHTML =
+            "<h1 style='color:white'>Receiver crash: check logs</h1>";
+    }
+</script>
 </body>
 </html>
