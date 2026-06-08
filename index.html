@@ -29,6 +29,13 @@
 <cast-media-player></cast-media-player>
 
 <script>
+    window.onerror = function (message, source, lineno, colno, error) {
+        console.log("🔥 JS ERROR:");
+        console.log("Message:", message);
+        console.log("Source:", source);
+        console.log("Line:", lineno, "Col:", colno);
+        console.log("Error:", error);
+    };
     try {
 
         if (!window.cast || !cast.framework) {
