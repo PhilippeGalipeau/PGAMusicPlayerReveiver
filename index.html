@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PGA Music Player Receiver</title>
+    <!-- Chargement du SDK Cast Receiver -->
+    <script type="text/javascript" src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: white;
+            font-family: Roboto, sans-serif;
+        }
+        /* Style du lecteur pour prendre tout l'écran */
+        cast-media-player {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <cast-media-player></cast-media-player>
+
+    <script>
+        const context = cast.framework.CastReceiverContext.getInstance();
+        const playerManager = context.getPlayerManager();
+
+        // 1. Configuration des options du récepteur
+        const options = new cast.framework.CastReceiverOptions();
+        
+        // Empêche la fermeture de l'application pendant 1h d'inactivité
+        options.maxInactivity = 3600; 
+        
+        // Permet au récepteur de rester en vie même après Home
+        options.disableIdleTimeout = true;
+
+        // 2. Interception des données personnalisées envoyées par le téléphone
+        playerManager.setMessageInterceptor(
+            cast.framework.messages.MessageType.LOAD,
+            loadRequestData => {
+                if (loadRequestData.media && loadRequestData.media.customData) {
+                    console.log("Données reçues du téléphone :", loadRequestData.media.customData);
+                }
+                return loadRequestData;
+            }
+        );
+
+        // 3. Démarrage du récepteur
+        context.start(options);
+    </script>
+</body>
+</html>
