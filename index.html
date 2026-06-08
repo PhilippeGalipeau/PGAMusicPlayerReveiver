@@ -29,6 +29,7 @@
 <cast-media-player></cast-media-player>
 
 <script>
+    console.log("PGA_BOOT_1");
     window.onerror = function (message, source, lineno, colno, error) {
         console.log("PGA - 🔥 JS ERROR:");
         console.log("PGA - 🔥Message:", message);
@@ -51,7 +52,7 @@
         const context = cast.framework.CastReceiverContext.getInstance();
         const playerManager = context.getPlayerManager();
 
-        console.log("Receiver JS loaded");
+        console.log("PGA - Receiver JS loaded");
 
         playerManager.addEventListener(
             cast.framework.events.EventType.PLAYER_STATE_CHANGED,
