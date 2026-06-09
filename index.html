@@ -2,9 +2,8 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>PGA Music Player Receiver</title>
+    <title>PGA Music Receiver</title>
 
-    <!-- IMPORTANT: HTTPS explicite -->
     <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
 
     <style>
@@ -17,26 +16,138 @@
             overflow: hidden;
         }
 
+        /* Player area */
         cast-media-player {
             width: 100%;
-            height: 100%;
+            height: 60%;
             display: block;
+        }
+
+        /* DEBUG PANEL */
+        #debug {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.85);
+            color: #00ff90;
+            font-size: 14px;
+            font-family: monospace;
+            padding: 8px;
+            box-sizing: border-box;
         }
     </style>
 </head>
 
 <body>
-<h1 style="color:white">RECEIVER HTML LOADED</h1>
+
+<cast-media-player></cast-media-player>
+<div id="debug"></div>
 
 <script>
-    document.body.innerHTML += "<p style='color:white'>SCRIPT EXECUTED 2</p>";
-    console.log("PGA_BOOT_1");
-    cast.debug && cast.debug.log && cast.debug.log("PGA_BOOT_1");
+    // -----------------------------
+    // DEBUG SYSTEM (SAFE)
+    // -----------------------------
+    const debugEl = document.getElementById("debug");
 
-    console.log = function(msg) {
-        cast.__platform__?.log?.info(msg);
-        document.body.innerHTML += "<p style='color:white'>" + msg + "</p>";
+    function debug(msg) {
+        const line = document.createElement("div");
+        line.textContent = msg;
+        debugEl.appendChild(line);
+        debugEl.scrollTop = debugEl.scrollHeight;
+
+        while (debugEl.childNodes.length > 200) {
+            debugEl.removeChild(debugEl.firstChild);
+        }
+    }
+
+    console.log = function (...args) {
+        debug(args.map(a =>
+            typeof a === "object" ? JSON.stringify(a) : a
+        ).join(" "));
     };
+
+    console.error = function (...args) {
+        debug("❌ " + args.join(" "));
+    };
+
+    window.onerror = function (message, source, lineno, colno) {
+        debug("🔥 JS ERROR: " + message + " (" + lineno + ":" + colno + ")");
+    };
+
+    window.addEventListener("unhandledrejection", function (event) {
+        debug("🔥 PROMISE ERROR: " + event.reason);
+    });
+
+    // -----------------------------
+    // BOOT TEST
+    // -----------------------------
+    debug("PGA_BOOT_START");
+
+    // -----------------------------
+    // CAST INITIALIZATION
+    // -----------------------------
+    try {
+        if (!window.cast || !cast.framework) {
+            debug("❌ CAST SDK NOT LOADED");
+            throw new Error("Cast SDK missing");
+        }
+
+        const context = cast.framework.CastReceiverContext.getInstance();
+        const playerManager = context.getPlayerManager();
+
+        debug("CAST SDK OK");
+
+        // -----------------------------
+        // LOAD INTERCEPTOR
+        // -----------------------------
+        playerManager.setMessageInterceptor(
+            cast.framework.messages.MessageType.LOAD,
+            request => {
+                debug("LOAD RECEIVED");
+
+                if (request.media?.customData) {
+                    debug("CUSTOM DATA: " + JSON.stringify(request.media.customData));
+                }
+
+                request.autoplay = true;
+                return request;
+            }
+        );
+
+        // -----------------------------
+        // PLAYER STATE DEBUG
+        // -----------------------------
+        playerManager.addEventListener(
+            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
+            e => {
+                debug("STATE: " + e.playerState);
+            }
+        );
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.ERROR,
+            e => {
+                debug("CAST ERROR: " + JSON.stringify(e));
+            }
+        );
+
+        // -----------------------------
+        // START RECEIVER
+        // -----------------------------
+        const options = new cast.framework.CastReceiverOptions();
+        options.maxInactivity = 3600;
+
+        context.start(options);
+
+        debug("RECEIVER STARTED");
+
+    } catch (e) {
+        debug("FATAL ERROR: " + e.message);
+    }
 </script>
+
 </body>
 </html>
