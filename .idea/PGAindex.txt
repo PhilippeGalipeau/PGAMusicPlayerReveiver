@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PGA Music Player Receiver</title>
+
+    <!-- IMPORTANT: HTTPS explicite -->
+    <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            overflow: hidden;
+        }
+
+        cast-media-player {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<cast-media-player></cast-media-player>
+
+<script>
+    console.log("PGA_BOOT_1");
+    window.onerror = function (message, source, lineno, colno, error) {
+        console.log("PGA - 🔥 JS ERROR:");
+        console.log("PGA - 🔥Message:", message);
+        console.log("PGA - 🔥Source:", source);
+        console.log("PGA - 🔥Line:", lineno, "Col:", colno);
+        console.log("PGA - 🔥Error:", error);
+    };
+    window.addEventListener("unhandledrejection", function (event) {
+        console.log("PGA - 🔥🔥 UNHANDLED PROMISE:");
+        console.log("PGA - 🔥" , event.reason);
+    });
+    try {
+
+        if (!window.cast || !cast.framework) {
+            console.error("PGA - CAST SDK NOT LOADED");
+            document.body.innerHTML = "<h1 style='color:white'>Cast SDK failed to load</h1>";
+            throw new Error("Cast SDK missing");
+        }
+
+        const context = cast.framework.CastReceiverContext.getInstance();
+        const playerManager = context.getPlayerManager();
+
+        console.log("PGA - Receiver JS loaded");
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
+            e => console.log("[STATE]", e.playerState)
+        );
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.ERROR,
+            e => console.error("[ERROR]", e)
+        );
+
+        playerManager.setMessageInterceptor(
+            cast.framework.messages.MessageType.LOAD,
+            request => {
+                console.log("[LOAD]", request?.media?.customData);
+                request.autoplay = true;
+                return request;
+            }
+        );
+
+        const options = new cast.framework.CastReceiverOptions();
+        options.maxInactivity = 3600;
+
+        context.start(options);
+
+        console.log("CAST RECEIVER STARTED OK");
+
+    } catch (e) {
+        console.error("FATAL RECEIVER ERROR:", e);
+
+        // Empêche boucle infinie silencieuse
+        document.body.innerHTML =
+            "<h1 style='color:white'>Receiver crash: check logs</h1>";
+    }
+</script>
+</body>
+</html>
