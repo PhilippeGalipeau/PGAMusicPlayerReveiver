@@ -29,8 +29,14 @@
 <h1 style="color:white">RECEIVER HTML LOADED</h1>
 
 <script>
-    document.body.innerHTML += "<p style='color:white'>SCRIPT EXECUTED</p>";
+    document.body.innerHTML += "<p style='color:white'>SCRIPT EXECUTED 2</p>";
     console.log("PGA_BOOT_1");
+    cast.debug && cast.debug.log && cast.debug.log("PGA_BOOT_1");
+
+    console.log = function(msg) {
+        cast.__platform__?.log?.info(msg);
+        document.body.innerHTML += "<p style='color:white'>" + msg + "</p>";
+    };
 </script>
 </body>
 </html>
