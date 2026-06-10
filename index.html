@@ -16,31 +16,38 @@
             overflow: hidden;
         }
 
-        /* Player area */
         cast-media-player {
             width: 100%;
             height: 100%;
             display: block;
         }
 
+        /* BARRE DE PROGRESSION */
         #progressContainer {
+            position: fixed;
+            bottom: 20px;
+            left: 5%;
             width: 90%;
-            height: 20px;
-            background: #444;
-            margin: 20px auto;
+            height: 24px;
+            background: rgba(80,80,80,0.8);
+            border-radius: 12px;
+            overflow: hidden;
+            z-index: 9999;
+            pointer-events: none;
         }
 
         #progress {
             width: 0%;
             height: 100%;
             background: #00ff90;
+            transition: width 0.5s linear;
         }
 
         /* DEBUG PANEL */
         /*
         #debug {
             position: fixed;
-            bottom: 0;
+            bottom: 50px;
             left: 0;
             width: 100%;
             height: 40%;
@@ -51,27 +58,33 @@
             font-family: monospace;
             padding: 8px;
             box-sizing: border-box;
+            z-index: 10000;
         }
-       */
+        */
     </style>
 </head>
 
 <body>
 
 <cast-media-player></cast-media-player>
+
 <div id="progressContainer">
     <div id="progress"></div>
 </div>
+
 <div id="debug"></div>
 
 <script>
+
     // -----------------------------
     // DEBUG SYSTEM (SAFE)
     // -----------------------------
+
     const debugEl = document.getElementById("debug");
 
     function debug(msg) {
-    /*
+
+        /*
         const line = document.createElement("div");
         line.textContent = msg;
         debugEl.appendChild(line);
@@ -80,7 +93,7 @@
         while (debugEl.childNodes.length > 200) {
             debugEl.removeChild(debugEl.firstChild);
         }
-    */
+        */
 
     }
 
@@ -105,12 +118,11 @@
     // -----------------------------
     // BOOT TEST
     // -----------------------------
+
     debug("PGA_BOOT_START");
 
-    // -----------------------------
-    // CAST INITIALIZATION
-    // -----------------------------
     try {
+
         if (!window.cast || !cast.framework) {
             debug("❌ CAST SDK NOT LOADED");
             throw new Error("Cast SDK missing");
@@ -121,6 +133,7 @@
 
         debug("CAST SDK OK");
 
+        /*
         debug("PLAYER_STATE_CHANGED = " +
             cast.framework.events?.EventType?.PLAYER_STATE_CHANGED);
 
@@ -129,20 +142,25 @@
 
         debug("LOAD EVENT exists = " +
             ("LOAD" in cast.framework.messages.MessageType));
+        */
 
         // -----------------------------
         // LOAD INTERCEPTOR
         // -----------------------------
+
         playerManager.setMessageInterceptor(
             cast.framework.messages.MessageType.LOAD,
-            (request) => {
+            request => {
+
                 debug("LOAD RECEIVED");
 
                 if (request.media?.customData) {
-                    debug("CUSTOM DATA: " + JSON.stringify(request.media.customData));
+                    debug("CUSTOM DATA: " +
+                        JSON.stringify(request.media.customData));
                 }
 
                 request.autoplay = true;
+
                 return request;
             }
         );
@@ -150,51 +168,89 @@
         // -----------------------------
         // PLAYER STATE DEBUG
         // -----------------------------
+
+        /*
         playerManager.addEventListener(
             cast.framework.events.EventType.ALL,
             e => {
                 debug("EVENT: " + e.type);
             }
         );
+        */
+
+        // -----------------------------
+        // PROGRESS BAR
+        // -----------------------------
+
+        const progress = document.getElementById("progress");
 
         setInterval(() => {
-            const session = cast.framework.CastContext.getInstance().getCurrentSession();
-            if (session) {
-                session.sendMessage("urn:x-cast:com.pga.music", {
-                    type: "HEARTBEAT"
-                });
-            }
-        }, 30000);
 
-        setInterval(() => {
-            const media = playerManager.getMediaInformation();
-            const duration = playerManager.getDuration();
-            const current = playerManager.getCurrentTime();
+            try {
 
-            if (duration > 0) {
-                document.getElementById("progress").style.width =
-                    ((current / duration) * 100) + "%";
+                const mediaStatus = playerManager.getMediaStatus();
+
+                if (!mediaStatus || !mediaStatus.media) {
+                    return;
+                }
+
+                const duration = mediaStatus.media.duration || 0;
+                const current = mediaStatus.currentTime || 0;
+
+                if (duration > 0) {
+
+                    const percent =
+                        Math.min(
+                            100,
+                            (current / duration) * 100
+                        );
+
+                    progress.style.width = percent + "%";
+
+                    /*
+                    debug(
+                        "Progress: " +
+                        current +
+                        "/" +
+                        duration +
+                        " = " +
+                        percent.toFixed(1) +
+                        "%"
+                    );
+                    */
+                }
+
+            } catch (e) {
+
+                /*
+                debug("Progress Error: " + e.message);
+                */
+
             }
+
         }, 1000);
 
         // -----------------------------
         // START RECEIVER
         // -----------------------------
-        const options = new cast.framework.CastReceiverOptions();
-        options.maxInactivity = 3600;
-        // 👇 empêche le système de considérer l'app comme inactive
-        options.disableIdleTimeout = true;
-        options.playbackConfig = new cast.framework.PlaybackConfig();
-        options.playbackConfig.autoResumeDuration = 999999;
 
+        const options =
+            new cast.framework.CastReceiverOptions();
+
+        options.maxInactivity = 3600;
+        options.disableIdleTimeout = true;
 
         context.start(options);
 
         debug("RECEIVER STARTED");
 
-    } catch (e) {
-        debug("FATAL ERROR: " + e.message);
     }
+    catch (e) {
+
+        debug("FATAL ERROR: " + e.message);
+
+    }
+
 </script>
 
 </body>
