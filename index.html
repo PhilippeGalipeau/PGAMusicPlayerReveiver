@@ -46,6 +46,9 @@
 <body>
 
 <cast-media-player></cast-media-player>
+<div id="progressContainer">
+    <div id="progress"></div>
+</div>
 <div id="debug"></div>
 
 <script>
@@ -149,6 +152,17 @@
                 });
             }
         }, 30000);
+
+        setInterval(() => {
+            const media = playerManager.getMediaInformation();
+            const duration = playerManager.getDuration();
+            const current = playerManager.getCurrentTime();
+
+            if (duration > 0) {
+                document.getElementById("progress").style.width =
+                    ((current / duration) * 100) + "%";
+            }
+        }, 1000);
 
         // -----------------------------
         // START RECEIVER
