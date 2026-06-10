@@ -106,15 +106,15 @@ debug("PLAYER_STATE_CHANGED = " +
 debug("ERROR = " +
     cast.framework.events?.EventType?.ERROR);
 
-debug("LOAD = " +
-    cast.framework.events?.EventType?.LOAD);
+debug("LOAD EVENT exists = " +
+    ("LOAD" in cast.framework.messages.MessageType));
 
         // -----------------------------
         // LOAD INTERCEPTOR
         // -----------------------------
         playerManager.setMessageInterceptor(
             cast.framework.messages.MessageType.LOAD,
-            request => {
+            (request) => {
                 debug("LOAD RECEIVED");
 
                 if (request.media?.customData) {
@@ -129,6 +129,12 @@ debug("LOAD = " +
         // -----------------------------
         // PLAYER STATE DEBUG
         // -----------------------------
+        playerManager.addEventListener(
+            cast.framework.events.EventType.ALL,
+            e => {
+                debug("EVENT: " + e.type);
+            }
+        );
         /*
         playerManager.addEventListener(
             cast.framework.events.EventType.PLAYER_STATE_CHANGED,
