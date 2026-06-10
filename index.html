@@ -53,6 +53,7 @@
     const debugEl = document.getElementById("debug");
 
     function debug(msg) {
+    /*
         const line = document.createElement("div");
         line.textContent = msg;
         debugEl.appendChild(line);
@@ -61,6 +62,7 @@
         while (debugEl.childNodes.length > 200) {
             debugEl.removeChild(debugEl.firstChild);
         }
+    */
     }
 
     console.log = function (...args) {
@@ -100,14 +102,14 @@
 
         debug("CAST SDK OK");
 
-debug("PLAYER_STATE_CHANGED = " +
-    cast.framework.events?.EventType?.PLAYER_STATE_CHANGED);
+        debug("PLAYER_STATE_CHANGED = " +
+            cast.framework.events?.EventType?.PLAYER_STATE_CHANGED);
 
-debug("ERROR = " +
-    cast.framework.events?.EventType?.ERROR);
+        debug("ERROR = " +
+            cast.framework.events?.EventType?.ERROR);
 
-debug("LOAD EVENT exists = " +
-    ("LOAD" in cast.framework.messages.MessageType));
+        debug("LOAD EVENT exists = " +
+            ("LOAD" in cast.framework.messages.MessageType));
 
         // -----------------------------
         // LOAD INTERCEPTOR
@@ -135,21 +137,7 @@ debug("LOAD EVENT exists = " +
                 debug("EVENT: " + e.type);
             }
         );
-        /*
-        playerManager.addEventListener(
-            cast.framework.events.EventType.PLAYER_STATE_CHANGED,
-            e => {
-                debug("STATE: " + e.playerState);
-            }
-        );
 
-        playerManager.addEventListener(
-            cast.framework.events.EventType.ERROR,
-            e => {
-                debug("CAST ERROR: " + JSON.stringify(e));
-            }
-        );
-        */
         // -----------------------------
         // START RECEIVER
         // -----------------------------
