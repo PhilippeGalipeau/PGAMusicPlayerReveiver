@@ -44,7 +44,7 @@
         }
 
         /* DEBUG PANEL */
-        /*
+
         #debug {
             position: fixed;
             bottom: 50px;
@@ -60,7 +60,7 @@
             box-sizing: border-box;
             z-index: 10000;
         }
-        */
+
     </style>
 </head>
 
@@ -84,7 +84,7 @@
 
     function debug(msg) {
 
-        /*
+
         const line = document.createElement("div");
         line.textContent = msg;
         debugEl.appendChild(line);
@@ -93,7 +93,7 @@
         while (debugEl.childNodes.length > 200) {
             debugEl.removeChild(debugEl.firstChild);
         }
-        */
+
 
     }
 
@@ -132,6 +132,20 @@
         const playerManager = context.getPlayerManager();
 
         debug("CAST SDK OK");
+        debug(
+            "getCurrentTime = " +
+            typeof playerManager.getCurrentTime
+        );
+
+        debug(
+            "getMediaStatus = " +
+            typeof playerManager.getMediaStatus
+        );
+
+        debug(
+            "getMediaInformation = " +
+            typeof playerManager.getMediaInformation
+        );
 
         /*
         debug("PLAYER_STATE_CHANGED = " +
@@ -178,6 +192,23 @@
         );
         */
 
+        let mediaDuration = 0;
+
+        playerManager.addEventListener(
+            cast.framework.events.EventType.MEDIA_INFORMATION_CHANGED,
+            (event) => {
+
+                if (event.mediaInformation &&
+                    event.mediaInformation.duration) {
+
+                    mediaDuration =
+                        event.mediaInformation.duration;
+
+                    debug("DURATION = " + mediaDuration);
+                }
+            }
+        );
+
         // -----------------------------
         // PROGRESS BAR
         // -----------------------------
@@ -188,43 +219,23 @@
 
             try {
 
-                const mediaStatus = playerManager.getMediaStatus();
+                const currentTime =
+                    playerManager.getCurrentTime
+                    ? playerManager.getCurrentTime()
+                    : 0;
 
-                if (!mediaStatus || !mediaStatus.media) {
-                    return;
-                }
-
-                const duration = mediaStatus.media.duration || 0;
-                const current = mediaStatus.currentTime || 0;
-
-                if (duration > 0) {
+                if (mediaDuration > 0) {
 
                     const percent =
-                        Math.min(
-                            100,
-                            (current / duration) * 100
-                        );
+                        (currentTime / mediaDuration) * 100;
 
-                    progress.style.width = percent + "%";
-
-                    /*
-                    debug(
-                        "Progress: " +
-                        current +
-                        "/" +
-                        duration +
-                        " = " +
-                        percent.toFixed(1) +
-                        "%"
-                    );
-                    */
+                    progress.style.width =
+                        Math.min(100, percent) + "%";
                 }
 
             } catch (e) {
 
-                /*
                 debug("Progress Error: " + e.message);
-                */
 
             }
 
