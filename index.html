@@ -157,16 +157,22 @@
         debug("LOAD EVENT exists = " +
             ("LOAD" in cast.framework.messages.MessageType));
         */
-
+let i = 0
+let str = ""
         for (const key in playerManager) {
 
-    if (typeof playerManager[key] === "function") {
+            if (typeof playerManager[key] === "function") {
+                str = str + " - " + key;
+                i = i+1 ;
+                if (i == 4)
+                {
+                    debug(key);
+                    i = 0
+                }
 
-        debug(key);
+            }
 
-    }
-
-}
+        }
 
         // -----------------------------
         // LOAD INTERCEPTOR
