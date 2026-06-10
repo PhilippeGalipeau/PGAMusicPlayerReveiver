@@ -230,33 +230,45 @@ let str = ""
         // PROGRESS BAR
         // -----------------------------
 
+        playerManager.addEventListener(
+            cast.framework.events.EventType.MEDIA_INFORMATION_CHANGED,
+            (e) => {
+                debug("MEDIA UPDATED");
+            }
+        );
         const progress = document.getElementById("progress");
 
         setInterval(() => {
 
             try {
 
-                const currentTime =
-                    playerManager.getCurrentTime
-                    ? playerManager.getCurrentTime()
-                    : 0;
+                const current =
+                    playerManager.getRawCurrentTimeSec
+                        ? playerManager.getRawCurrentTimeSec()
+                        : 0;
 
-                if (mediaDuration > 0) {
+                const media =
+                    playerManager.getMediaInformation();
+
+                const duration =
+                    media && media.duration
+                        ? media.duration
+                        : 0;
+
+                if (duration > 0) {
 
                     const percent =
-                        (currentTime / mediaDuration) * 100;
+                        (current / duration) * 100;
 
                     progress.style.width =
                         Math.min(100, percent) + "%";
                 }
 
             } catch (e) {
-
-                debug("Progress Error: " + e.message);
-
+                // debug("progress error " + e.message);
             }
 
-        }, 1000);
+        }, 500);
 
         // -----------------------------
         // START RECEIVER
