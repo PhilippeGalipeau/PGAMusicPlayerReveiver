@@ -147,7 +147,7 @@
             typeof playerManager.getMediaInformation
         );
 
-        /*
+                /*
         debug("PLAYER_STATE_CHANGED = " +
             cast.framework.events?.EventType?.PLAYER_STATE_CHANGED);
 
@@ -157,6 +157,16 @@
         debug("LOAD EVENT exists = " +
             ("LOAD" in cast.framework.messages.MessageType));
         */
+
+        for (const key in playerManager) {
+
+    if (typeof playerManager[key] === "function") {
+
+        debug(key);
+
+    }
+
+}
 
         // -----------------------------
         // LOAD INTERCEPTOR
