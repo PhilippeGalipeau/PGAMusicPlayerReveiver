@@ -100,6 +100,15 @@
 
         debug("CAST SDK OK");
 
+debug("PLAYER_STATE_CHANGED = " +
+    cast.framework.events?.EventType?.PLAYER_STATE_CHANGED);
+
+debug("ERROR = " +
+    cast.framework.events?.EventType?.ERROR);
+
+debug("LOAD = " +
+    cast.framework.events?.EventType?.LOAD);
+
         // -----------------------------
         // LOAD INTERCEPTOR
         // -----------------------------
@@ -120,6 +129,7 @@
         // -----------------------------
         // PLAYER STATE DEBUG
         // -----------------------------
+        /*
         playerManager.addEventListener(
             cast.framework.events.EventType.PLAYER_STATE_CHANGED,
             e => {
@@ -133,7 +143,7 @@
                 debug("CAST ERROR: " + JSON.stringify(e));
             }
         );
-
+        */
         // -----------------------------
         // START RECEIVER
         // -----------------------------
