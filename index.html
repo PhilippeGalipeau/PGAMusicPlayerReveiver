@@ -139,11 +139,25 @@
             }
         );
 
+        setInterval(() => {
+            const session = cast.framework.CastContext.getInstance().getCurrentSession();
+            if (session) {
+                session.sendMessage("urn:x-cast:com.pga.music", {
+                    type: "HEARTBEAT"
+                });
+            }
+        }, 30000);
+
         // -----------------------------
         // START RECEIVER
         // -----------------------------
         const options = new cast.framework.CastReceiverOptions();
         options.maxInactivity = 3600;
+        // 👇 empêche le système de considérer l'app comme inactive
+        options.disableIdleTimeout = true;
+        options.playbackConfig = new cast.framework.PlaybackConfig();
+        options.playbackConfig.autoResumeDuration = 999999;
+
 
         context.start(options);
 
